@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:55432/reposearch_test}
+    username: ${TEST_DB_USERNAME:reposearch}
+    password: ${TEST_DB_PASSWORD:reposearch}

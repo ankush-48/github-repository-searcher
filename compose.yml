@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: reposearch
+      POSTGRES_USER: ${DB_USERNAME:-reposearch}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-reposearch}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d reposearch"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  app:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/reposearch
+      DB_USERNAME: ${DB_USERNAME:-reposearch}
+      DB_PASSWORD: ${DB_PASSWORD:-reposearch}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  postgres-data:

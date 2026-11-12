@@ -1,0 +1,289 @@
+{
+  "info": {
+    "name": "GitHub Repository Searcher",
+    "description": "Run in numbered order. Set baseUrl in the environment. Requests 04-06 assume stable live search results and no other imports; GitHub results can change. No token is needed in Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/actuator/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Healthy\", () => { pm.response.to.have.status(200); pm.expect(pm.response.json().status).to.eql(\"UP\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Search and save",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/github/search",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"spring-boot\",\n  \"language\": \"Java\",\n  \"sort\": \"stars\",\n  \"page\": 1,\n  \"perPage\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Search succeeded\", () => { pm.response.to.have.status(200); const b=pm.response.json(); pm.expect(b.repositories).to.be.an(\"array\"); pm.expect(b.repositories.length).to.be.at.most(5); pm.expect(b.page).to.eql(1); pm.expect(b.incompleteResults).to.be.a(\"boolean\"); });",
+              "if (pm.response.code === 200) pm.collectionVariables.set(\"searchedIds\", JSON.stringify(pm.response.json().repositories.map(r => r.id)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Stored repositories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?language=Java&minStars=100&sort=stars&page=0&size=20"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Filtered and sorted\", () => { pm.response.to.have.status(200); const b=pm.response.json(); b.repositories.forEach(r => { pm.expect(r.language.toLowerCase()).to.eql(\"java\"); pm.expect(r.stars).to.be.at.least(100); }); for(let i=1;i<b.repositories.length;i++) pm.expect(b.repositories[i-1].stars).to.be.at.least(b.repositories[i].stars); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 All stored before repeat",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?page=0&size=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if(pm.response.code === 200) { const b=pm.response.json(); pm.collectionVariables.set(\"beforeCount\", String(b.totalElements)); pm.collectionVariables.set(\"beforeIds\", JSON.stringify(b.repositories.map(r=>r.id))); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Repeat same search",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/github/search",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"spring-boot\",\n  \"language\": \"Java\",\n  \"sort\": \"stars\",\n  \"page\": 1,\n  \"perPage\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 All stored after repeat",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?page=0&size=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"No duplicate IDs within page\", () => { const ids=pm.response.json().repositories.map(r=>r.id); pm.expect(new Set(ids).size).to.eql(ids.length); });",
+              "pm.test(\"Repeat keeps stored count for unchanged live results\", () => { const before=pm.collectionVariables.get(\"beforeCount\"); pm.expect(before, \"Run request 04 first; avoid concurrent imports\").to.exist; pm.expect(pm.response.json().totalElements).to.eql(Number(before)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Sort by forks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?sort=forks"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Sort by updated",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?sort=updated"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Empty filter result",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?language=DefinitelyNotARealLanguage"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Empty array\", () => { pm.response.to.have.status(200); pm.expect(pm.response.json().repositories).to.eql([]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Invalid search",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/github/search",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Validation rejected\", () => { pm.response.to.have.status(400); pm.expect(pm.response.json().code).to.eql(\"VALIDATION_ERROR\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Invalid sort",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?sort=invalid"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Invalid sort rejected\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Invalid page size",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/github/repositories?size=101"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Size rejected\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

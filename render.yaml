@@ -1,0 +1,37 @@
+# Render Blueprint: creates a web service and PostgreSQL database.
+# Review Render's displayed pricing before applying this blueprint.
+databases:
+  - name: repository-searcher-db
+    databaseName: reposearch
+    user: reposearch
+    plan: free
+    region: oregon
+    ipAllowList: []
+services:
+  - type: web
+    name: github-repository-searcher
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: repository-searcher-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: repository-searcher-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: repository-searcher-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: repository-searcher-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: repository-searcher-db
+          property: password
