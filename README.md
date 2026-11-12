@@ -154,12 +154,3 @@ The verified local suite contains **73 passing tests** (62 unit/MVC/HTTP-client 
 
 Tests cover upstream responses, nullable fields, URI encoding, timeouts, rate limits, request validation, stable sorting, filters, pagination, concurrent upserts, stale snapshots, SQL injection as data, and transaction rollback. GitHub Actions runs full verification with PostgreSQL and builds the production container. JaCoCo report: `target/site/jacoco/index.html`.
 
-## Submission materials
-
-- [Postman collection](docs/postman/Repository-Searcher.postman_collection.json) and [environment](docs/postman/Local.postman_environment.json)
-- [Architecture and tradeoffs](docs/ARCHITECTURE.md)
-- [Deployment guide](docs/DEPLOYMENT.md) and Render Blueprint (`render.yaml`)
-- [Loom recording script](docs/LOOM_SCRIPT.md)
-- [Interview preparation](docs/EXPLAINER.md)
-
-Record your Loom using [the prepared script](docs/LOOM_SCRIPT.md), then include its share URL with this repository and the live API URL in the assessment submission.
