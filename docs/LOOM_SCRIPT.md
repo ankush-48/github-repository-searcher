@@ -1,11 +1,17 @@
 # Loom recording script
 
+Repository: https://github.com/ankush-48/github-repository-searcher
+
+Live API: https://github-repository-searcher-symh.onrender.com
+
+Swagger: https://github-repository-searcher-symh.onrender.com/swagger-ui.html
+
 Target length: **5–6 minutes**. Speak naturally; do not read every line of code. Use the deployed URL if available. If recording locally, label it honestly and provide the deployed URL separately before submission.
 
 ## Prepare before pressing Record
 
 1. Open the repository README, the API client and the latest passing CI run.
-2. Import both JSON files from `docs/postman`, choose the environment and set `baseUrl` to your deployed API URL, without a trailing slash.
+2. Import the collection and `Deployed.postman_environment.json` from `docs/postman`, then select the deployed environment. It already contains the public API URL.
 3. Send Health once to wake the service. Run Search once to confirm GitHub access before recording.
 4. Keep the search small (`perPage: 5`) so the response is readable and does not consume unnecessary quota.
 5. Open `RepositoryService.java`, `RepositoryStore.java`, and the test reports in separate tabs.

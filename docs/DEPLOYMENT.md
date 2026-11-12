@@ -1,11 +1,15 @@
 # Deployment
 
+Assessment service: https://github-repository-searcher-symh.onrender.com
+
+Render dashboard: https://dashboard.render.com/web/srv-dbqolvlbedkc73e9oum0
+
 The Dockerfile runs the packaged Java 21 application as a non-root user. The platform must provide a PostgreSQL database and environment variables. The application listens on the platform's `PORT` (default 8080).
 
 ## Render
 
 1. Connect the GitHub repository to Render and create a PostgreSQL database plus a Docker web service, or use the included `render.yaml` Blueprint.
-2. Review the plans and pricing shown in your account before provisioning. Free-service availability and database lifetime depend on Render's current offering; verify before submission.
+2. Review the plans and pricing shown in your account before provisioning. Render documents that free Postgres databases expire after 30 days and free web services can sleep when idle. Check the actual expiry shown in your dashboard before submission. See [Render free-service documentation](https://render.com/docs/free).
 3. The Blueprint automatically wires database host, port, name, user and password to the app. For a manually created web service, set `DB_URL` to the **JDBC** form of the internal database address:
    `jdbc:postgresql://HOST:5432/reposearch`
    Use the host and database actually assigned by Render. A `postgres://...` URI is not a JDBC URL. Do not include the username or password in this variable.

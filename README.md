@@ -1,8 +1,18 @@
 # GitHub Repository Searcher
 
+[![Build and test](https://github.com/ankush-48/github-repository-searcher/actions/workflows/ci.yml/badge.svg)](https://github.com/ankush-48/github-repository-searcher/actions/workflows/ci.yml)
+
 A Java 21 / Spring Boot REST API that searches GitHub repositories, stores snapshots in PostgreSQL, and lets callers filter and sort saved results without making another GitHub request.
 
 Built for the **GitHub Repository Searcher backend assignment**. There is no custom frontend; use Postman or the generated Swagger documentation.
+
+## Live API
+
+- [Swagger documentation](https://github-repository-searcher-symh.onrender.com/swagger-ui.html)
+- [Health](https://github-repository-searcher-symh.onrender.com/actuator/health)
+- [Saved repositories](https://github-repository-searcher-symh.onrender.com/api/github/repositories)
+
+The service uses Render's free tier. Allow time for a cold start if it has been idle.
 
 ## Run with Docker
 
@@ -140,6 +150,8 @@ docker compose -f compose.test.yml down
 
 Integration tests truncate `github_repositories` in the configured test database. Never point `TEST_DB_URL` at production. Default: `jdbc:postgresql://localhost:55432/reposearch_test`, user/password `reposearch`. Overrides: `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD`.
 
+The verified local suite contains **73 passing tests** (62 unit/MVC/HTTP-client tests and 11 integration tests). JaCoCo reports **98.82% line coverage** and **77.36% branch coverage**. The build enforces minimum coverage of 90% lines and 70% branches. The included Postman collection also passed all 12 requests and 14 assertions against the running local API.
+
 Tests cover upstream responses, nullable fields, URI encoding, timeouts, rate limits, request validation, stable sorting, filters, pagination, concurrent upserts, stale snapshots, SQL injection as data, and transaction rollback. GitHub Actions runs full verification with PostgreSQL and builds the production container. JaCoCo report: `target/site/jacoco/index.html`.
 
 ## Submission materials
@@ -150,4 +162,4 @@ Tests cover upstream responses, nullable fields, URI encoding, timeouts, rate li
 - [Loom recording script](docs/LOOM_SCRIPT.md)
 - [Interview preparation](docs/EXPLAINER.md)
 
-Deployment and recording links should be added here after those external steps are complete. Do not substitute a localhost URL for a public deployed URL.
+Record your Loom using [the prepared script](docs/LOOM_SCRIPT.md), then include its share URL with this repository and the live API URL in the assessment submission.
